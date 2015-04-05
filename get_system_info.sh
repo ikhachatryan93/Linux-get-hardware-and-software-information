@@ -1,8 +1,9 @@
 #!/bin/bash
+args="$@"
 count_of_needed_files=0
 count_of_corrupted_files=0
 
-#get username from 'usr/bin/whoami' program or $user varieble
+#get username from 'usr/bin/whoami' program or $user variable
 function get_user_name()
 {
 	 program_path=$(which whoami)
@@ -11,7 +12,7 @@ function get_user_name()
 	 elif [ "$USER" != "" ]; then
 		echo "      User name            : $USER"
 	 else
- 		echo "      User name            : unknown (can not find whoami  ,,,,,,, program is missing!  USER varieble is not founded!)"
+ 		echo "      User name            : unknown (can not find whoami  ,,,,,,, program is missing!  USER variable is not founded!)"
    	 fi
 }
 
@@ -74,7 +75,7 @@ function get_architecture_version()
 	fi	 
 }
 
-#get distribution name from '/usr/bin/lsb_realese'
+#get distribution name from '/usr/bin/lsb_release' 
 function get_distribution_name()
 {
 	lsb_release -d > /dev/null 2>&1
@@ -101,7 +102,7 @@ function get_processor_name()
 	fi
 }
 
-#get pyhsical memory space from '/proc/meminfo' or '/usr/bin/free'
+#get physical memory space from '/proc/meminfo' or '/usr/bin/free'
 function get_physical_memory()
 {
 	program_path=$(which free)
@@ -163,7 +164,7 @@ function get_kernel_compiled()
 	elif [ -f "/proc/version" ]; then 
 		echo "      Kernel Compiled      : $(awk -F# '{print "#" $2}' /proc/version)"
 	else 
-		echo "      Kernel Compiled	     : unknown (can not find '/bin/uname' and '/proc/verison' ,,,,,,, programs are missing!)"
+		echo "      Kernel Compiled	     : unknown (can not find '/bin/uname' and '/proc/version' ,,,,,,, programs are missing!)"
 	fi
 }
 
@@ -173,7 +174,7 @@ function get_desktop_environment()
 	if [ -n "$XDG_CURRENT_DESKTOP" ]; then
 		echo "      Desktop Environment  : $XDG_CURRENT_DESKTOP "
 	else
-		echo "      Desktop Environment  : unknown (XDG_CURRENT_DESKTOP varieble is not found ,,,,,,,, unseted varieble! "
+		echo "      Desktop Environment  : unknown (XDG_CURRENT_DESKTOP variable is not found ,,,,,,,, unseted variable! "
 	fi
 }
 
@@ -312,7 +313,7 @@ function get_processor_flags()
 	done
 }
 
-#get netrwork informaiton from '/sbin/config'
+#get network information from '/sbin/config'
 function get_network_information()
 {
 	ifconfig > /dev/null 2>&1
@@ -451,7 +452,7 @@ function get_chrom()
 {
 	chromium-browser --version > /dev/null 2>&1
 	if [ $? -eq 0 ];then 
-		echo "      Chrome verison       : $(chromium-browser --version | awk '{print $1 " " $2}')"
+		echo "      Chrome version       : $(chromium-browser --version | awk '{print $1 " " $2}')"
 	fi 
 }
 
@@ -538,7 +539,7 @@ function get_skype()
 	fi
 }
 
-#get Java verison 
+#get Java version 
 function get_java()
 {
 	java -version > /dev/null 2>&1
@@ -557,7 +558,7 @@ function get_mysql()
 	fi
 }
 
-#get Python verison
+#get Python version
 function get_php()
 {
 	php --version > /dev/null 2>&1
@@ -600,7 +601,7 @@ function check()
 	fi
 }
 
-#chech paths by path
+#check paths by path
 function check_path()
 {
 	if [ ! -f "$1" ]; then
@@ -781,7 +782,7 @@ function get_programs()
 #get devices
 function get_device_info()
 {
-	echo "Device and Driver informatio{"
+	echo "Device and Driver information{"
 	get_pci_devices
 	echo "}"
 	echo ""
@@ -802,12 +803,24 @@ function show_help()
 {
 	echo "For main information press: 1"
 	echo "For complete information press: 2"
-	echo "For operation system information press: 3"
+	echo "For os information press: 3"
 	echo "For cpu information press: 4"
 	echo "For pci information press: 5"
-	echo "For newtork information press: 6"
+	echo "For network information press: 6"
 	echo "For major application programs press: 7" 
 	echo "To quit press: q"
+}
+
+function show_options()
+{
+    echo "Display options:"
+	echo "--main            main information"
+	echo "--all             complete information"
+	echo "--os              os information"
+	echo "--cpu             cpu information"
+	echo "--dev             pci information"
+	echo "--net             network information"
+	echo "--soft           application programs" 
 }
 
 function process_command()
@@ -837,11 +850,33 @@ function process_command()
 
 function main()
 {    
-	check_files
-	while true ; do
-        show_help
-        process_command
-	done
+    for opt in "$args"
+    do 
+        case "$opt" in
+        --all)    complete_info;;
+        --main)   main_info;;
+        --os)     get_os_info;;
+        --cpu)    get_cpu_info;;
+        --dev)    get_device_info;;
+        --net)    get_network_info;;
+        --soft)   get_programs;;
+        --help)   show_options;;
+        *)  
+            show_options
+            exit -1
+            ;;
+        esac
+        shift
+    done
+
+    if [ "$args" == "" ] 
+    then
+	    check_files
+	    while true ; do
+            show_help
+            process_command
+	    done
+    fi
 }
 
 main
