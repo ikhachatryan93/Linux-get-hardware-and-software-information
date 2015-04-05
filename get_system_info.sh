@@ -75,17 +75,6 @@ function get_architecture_version()
 	fi	 
 }
 
-#get distribution name from '/usr/bin/lsb_release' 
-function get_distribution_name()
-{
-	lsb_release -d > /dev/null 2>&1
-	if [ $? -eq 0 ]; then 
-		echo "      Distribution         : $(lsb_release -d | awk -F"Description:	" '{print $2}')"
-	else
-		echo "      Distribution 	     : unknown (can not find '/usr/bin/lsb_release' ,,,,,,, program id missing!)"
-	fi	
-}
-
 #get processor name from '/proc/cpuinfo'
 function get_processor_name()
 {
@@ -131,12 +120,17 @@ function get_hard_disk_space()
 #get display resolution from '/usr/bin/xdpyinfo' and '/usr/bin/xrandr' 
 function get_display_resolution()
 {	
+    ps -o uid,comm -A | grep X > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+		echo "      Display Resolution   : X server is not running" 
+        return
+    fi
 	program_path=$(which xdpyinfo)
 	program_path2=$(which xrandr)
 	if [ -f "$program_path" ]; then
-		echo "      Display Resolution   : $(xdpyinfo  | grep 'dimensions:' | awk '{print $2 " " $3}')"
+		echo "      Display Resolution   : $(xdpyinfo 2>/dev/null  | grep 'dimensions:' | awk '{print $2 " " $3}')"
 	elif [ -f "$program_path2" ]; then 
-		echo "      Display Resolution   : $(xrandr | grep '*' | awk '{print $1}')"
+		echo "      Display Resolution   : $(xrandr 2>/dev/null | grep '*' | awk '{print $1}')"
 	else
 		echo "      Display Resolution   : unknown (can not find '/usr/bin/xdpyinfo' and '/usr/bin/xrandr'  ,,,,,,, programs are missing!)"
 	fi
@@ -184,8 +178,12 @@ function get_distribution_name()
 	lsb_release -d > /dev/null 2>&1
 	if [ $? -eq 0 ]; then 
 		echo "      Distribution         : $(lsb_release -d | awk -F"Description:	" '{print $2}')"
-	else 
-		echo "      Distribution         : unknown (can not find '/usr/bin/lsb_release' ,,,,,,, program is missing!)"
+	elif [ -f "/etc/slackware-version" ]
+    then 
+        cat /etc/slackware-version
+    elif [ -f "/etc/issue" ]; then
+        cat /etc/issue
+    else  echo "      Distribution         : unknown (can not find '/usr/bin/lsb_release' ,,,,,,, program is missing!)"
 	fi
 }
 
