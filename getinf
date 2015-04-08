@@ -53,12 +53,33 @@ function get_kernel_version()
 	fi 
 }
 
+#get uptime
+function get_uptime()
+{
+    type uptime > /dev/null 2>&1
+    if [ $? -eq 0 ]; then 
+        # filter uptime to " *day, *h, *min" format
+        utime=`uptime | awk '{
+                                for(i=1;i<=NF;i++) {
+                                    if ($i=="up")
+                                        up=i;
+                                    else if ($i=="days,") {
+                                        print $(i-1)," days",$(i+1);
+                                        break;}
+                                    else if (i==NF)
+                                        print $(up+1);
+                                }
+                             }' | sed 's/:/h\ /; s/,/min/'`
+        echo "      Uptime               : $utime"
+    fi
+}
+
 #get architecture version of kernel from '/bin/uname' or '/usr/bin/arch'
 function get_architecture_version()
 {
  	program_path2=$(which arch)
 	uname -m > /dev/null 2>&1
-    	if [ $? -eq 0 ];then 
+    if [ $? -eq 0 ];then 
 		architecture=$(uname -m)
 	elif [ -f "$program_path2" ]; then
 		architecture=$(arch)
@@ -188,7 +209,7 @@ function get_distribution_name()
 }
 
 #get gcc version from gcc --version 
-function get_gcc_version()
+function get_gcc()
 {
 	type gcc  > /dev/null 2>&1
 	if [ $? -eq 0 ]; then 
@@ -239,8 +260,8 @@ function get_cpu_current_freq()
 	fi	
 }
 
-#get cpu maximum frequency
-function get_max_cpu_freq()
+#get maximum cpu frequency
+function get_cpu_max_freq()
 {
 	if [ -f "/proc/cpuinfo" ];  then 
 	if  grep "model name" /proc/cpuinfo | grep -q "@"  ; then
@@ -373,7 +394,7 @@ function get_domain_dns()
 		printf "      DNS addresses        :" 
 		while read line; do
 		    if [ "$(echo $line | grep -e nameserver)" != "" ]; then
-				printf " $(echo $line | grep nameserver | awk '{print $2}'),"
+				printf " $(echo $line | grep nameserver | awk '{print $2}') "
 		    fi
 		done < ${name_servers}
 			echo ""
@@ -678,7 +699,7 @@ function check_files()
 #collect programs versions
 function collect_programs()
 {
-	echo "Program information{"
+	echo "  Program information {"
 	get_firefox
 	get_chrome
 	get_opera
@@ -702,8 +723,8 @@ function collect_programs()
 	get_python
 	get_java
 	get_ruby
-    get_gcc_version
-	echo "}"
+    get_gcc
+	echo "  }"
 	echo ""
 }
 
@@ -711,47 +732,56 @@ function collect_programs()
 function collect_main_info()
 {
 	echo "GENERAL { "
+	echo "  System {"
 	get_user_name 
 	get_hostname
 	get_date_time
-	echo "	OS information"
+    get_uptime
+	echo ""
+	get_distribution_name
 	get_kernel_version
 	get_architecture_version
-	get_distribution_name
-	echo "	Hardware information"
+	echo "  }"
+	echo "  Hardware {"
 	get_processor_name
 	get_cpu_vendor
 	get_physical_memory
 	get_cpu_current_freq 
-	get_max_cpu_freq
+	get_cpu_max_freq
 	get_hard_disk_space
 	get_display_resolution  
-	echo "}"
+	echo "  }"
 	echo ""
+    echo "}"
 }
 
 #collect information about software, hardware, network, and users
 function collect_complete_info()
 {	
 	#software info
-	echo "Complete information{"
+	echo "Complete"
 	echo ""
-	echo "  Kernel information{"
+	echo "  System {"
+	get_user_name 
+	get_hostname
+	get_date_time
+    get_uptime
+    echo ""
 	get_kernel_version
 	get_kernel_compiled
 	get_architecture_version
+    echo ""
 	get_distribution_name
 	get_desktop_environment
-	get_gcc_version
+	get_gcc
 	echo "  }"
 	echo ""
-	#hardware info
-	echo "  Hardware information{"
+	echo "  Hardware {"
 	get_processor_name
 	get_cpu_vendor
 	get_cpu_operation_mode
 	get_number_of_cpu_cores
-	get_max_cpu_freq
+	get_cpu_max_freq
 	get_cpu_current_freq
 	get_cpu_cache_size
 	get_cpu_load_average
@@ -763,12 +793,12 @@ function collect_complete_info()
 	echo "  }"
 	echo ""
 	#get_input_devices
-	echo "  PCI devices information{"
+	echo "  PCI devices {"
 	    get_pci_devices
 	echo "  }"
 	echo ""
 	#get network information
-	    collect_network_info
+	collect_network_info
 	#programs info
 	echo ""
 	collect_programs
@@ -777,14 +807,14 @@ function collect_complete_info()
 #collect information about operation system
 function collect_os_info()
 {
-	echo "OS information{"
+	echo "  OS information {"
 	get_kernel_version
 	get_kernel_compiled
 	get_architecture_version
 	get_distribution_name
 	get_desktop_environment
-	get_gcc_version
-	echo "}"
+	get_gcc
+	echo "  }"
 	echo ""
 }
 
@@ -792,18 +822,18 @@ function collect_os_info()
 function collect_cpu_info()
 {
 	#collect cpu information
-	echo "CPU information{"
+	echo "  CPU information {"
 	get_processor_name
 	get_cpu_vendor
 	get_cpu_operation_mode
 	get_number_of_cpu_cores
-	get_max_cpu_freq
+	get_cpu_max_freq
 	get_cpu_current_freq
 	get_cpu_cache_size
 	get_cpu_load_average
 	get_processor_flags
 	echo ""
-	echo "}"
+	echo "  }"
 	echo ""
 }
 
@@ -811,16 +841,16 @@ function collect_cpu_info()
 #collect device information
 function collect_device_info()
 {
-	echo "Device and Driver information{"
+	echo "  Device and Driver information {"
 	get_pci_devices
-	echo "}"
+	echo "  }"
 	echo ""
 }
 
 #collect network information
 function collect_network_info()
 {
-	echo "  Network information{"
+	echo "  Network information {"
 	get_network_information
 	echo "    Network properties "
 	get_hostname
@@ -840,8 +870,59 @@ function show_options()
 	echo "--dev             pci information"
 	echo "--net             network information"
 	echo "--soft            application programs" 
+    echo "--list            to list the specific functions. Note that scpeific functions do not use \"--\" symbols"
 }
 
+function show_list()
+{
+    echo "   get_user_name"
+    echo "   get_hostname"
+    echo "   get_date_time"
+    echo "   get_kernel_version"
+    echo "   get_uptime"
+    echo "   get_architecture_version"
+    echo "   get_processor_name"
+    echo "   get_physical_memory"
+    echo "   get_hard_disk_space"
+    echo "   get_display_resolution"
+    echo "   get_kernel_version"
+    echo "   get_kernel_compiled"
+    echo "   get_desktop_environment"
+    echo "   get_distribution_name"
+    echo "   get_gcc"
+    echo "   get_cpu_operation_mode"
+    echo "   get_number_of_cpu_cores"
+    echo "   get_cpu_current_freq"
+    echo "   get_cpu_max_freq"
+    echo "   get_cpu_cache_size"
+    echo "   get_cpu_load_average"
+    echo "   get_cpu_vendor"
+    echo "   get_processor_flags"
+    echo "   get_network_information"
+    echo "   get_getway"
+    echo "   get_domain_dns"
+    echo "   get_pci_devices"
+    echo "   get_firefox"
+    echo "   get_chrome"
+    echo "   get_opera"
+    echo "   get_epiphany"
+    echo "   get_lynx"
+    echo "   get_libre_office"
+    echo "   get_kria"
+    echo "   get_gimp"
+    echo "   get_gimp_libraries"
+    echo "   get_vim"
+    echo "   get_skype"
+    echo "   get_mysql"
+    echo "   get_php"
+    echo "   get_gedit"
+    echo "   get_thunderbird"
+    echo "   get_cmake"
+    echo "   get_make"
+    echo "   get_python"
+    echo "   get_java"
+    echo "   get_ruby"
+}
 
 function main()
 {    
@@ -857,7 +938,15 @@ function main()
         --net)    collect_network_info;;
         --soft)   collect_programs;;
         --help)   show_options;;
+        --list)   show_list;;
         *)  
+            $opt > /dev/null 2>&1 && bool=1
+            if [ $? == 0 ]; then
+                if [ -n  $opt ]; then 
+                    $opt
+                    exit 0
+                fi
+            fi
             show_options
             exit -1
             ;;
