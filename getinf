@@ -192,7 +192,7 @@ function get_gcc_version()
 {
 	type gcc  > /dev/null 2>&1
 	if [ $? -eq 0 ]; then 
-		echo "      GCC Version          : $(gcc --version | grep -m 1  'gcc')"
+		echo "      GCC Version          : $(gcc --version 2>1 | grep -m 1  'gcc')"
 	else 	
 		echo "      GCC Version          : unknown"
 	fi
@@ -605,7 +605,7 @@ function get_python()
 #get java information
 function get_java()
 {
-    type java > /dev/null 2>&1
+    type javac > /dev/null 2>&1
 	if [ $? -eq 0 ];then 
         echo "      Java version         : $(javac -version 2>&1 | sed 's/javac/java/')  "
     fi
