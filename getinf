@@ -941,14 +941,12 @@ function main()
         --list)   show_list;;
         *)  
             $opt > /dev/null 2>&1 && bool=1
-            if [ $? == 0 ]; then
-                if [ -n  $opt ]; then 
-                    $opt
-                    exit 0
-                fi
+            if [ "$?" != "0" -o "$opt" == "" ]; then
+                show_options
+                exit -1
             fi
-            show_options
-            exit -1
+            $opt
+            exit 0
             ;;
         esac
         shift
