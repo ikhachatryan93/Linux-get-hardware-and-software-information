@@ -870,7 +870,7 @@ function show_options()
 	echo "--dev             pci information"
 	echo "--net             network information"
 	echo "--soft            application programs" 
-    echo "--list            to list the specific functions. Note that scpeific functions do not use \"--\" symbols"
+    echo "--list            to list the specific functions. Note that specific functions not require \"--\" symbols when giving as argument"
 }
 
 function show_list()
