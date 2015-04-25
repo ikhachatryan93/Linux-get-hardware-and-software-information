@@ -516,7 +516,7 @@ function get_kria()
 {
 	type kria > /dev/null 2>&1
 	if [ $? -eq 0 ];then 
-		echo "      Kria version         : $(kria --version 2>/dev/null | grep -i Կրիա )"
+        echo "      Kria version         : $(kria --version 2>/dev/null | grep -i 'Կրիա \|Kturtle' | awk -F: '{print $2}')"
 	fi
 }
 
@@ -601,7 +601,7 @@ function get_cmake()
 {
     type cmake > /dev/null 2>&1
 	if [ $? -eq 0 ];then 
-        echo "      Cmake version        : $(cmake --version 2>/dev/null)"
+        echo "      Cmake version        : $(cmake --version 2>/dev/null | sed  -n 1p)"
     fi
 }
 
