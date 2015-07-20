@@ -189,7 +189,7 @@ function get_desktop_environment()
 	if [ -n "$XDG_CURRENT_DESKTOP" ]; then
 		echo "      Desktop Environment  : $XDG_CURRENT_DESKTOP "
 	else
-		echo "      Desktop Environment  : unknown (XDG_CURRENT_DESKTOP variable is not found ,,,,,,,, unseted variable! "
+		echo "      Desktop Environment  : unknown (XDG_CURRENT_DESKTOP variable is not found ,,,,,,,, undefined variable!) "
 	fi
 }
 
